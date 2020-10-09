@@ -1,9 +1,12 @@
 const Intl = require('intl')
+const Member = require('../models/Member')
 const { age, date } = require('../../lib/utils')
 
 module.exports = {
     index(req, res){
-        return res.render("members/index")
+        Member.all(members => {
+            return res.render("members/index", { members })
+        })       
     },
 
     create(req, res){
@@ -19,17 +22,29 @@ module.exports = {
             }
         }
 
-        return
+        Member.create(req.body, member => {
+            return res.redirect(`/members/${member.id}`)
+        })
     },
 
     show(req, res){
-        
-        return
+        Member.find(req.params.id, member => {
+            if (!member) return res.send("Member not found!")
+
+            member.birth = date(member.birth).birthDay
+
+            return res.render("members/show", { member })
+        })
     },
 
     edit(req, res){
+        Member.find(req.params.id, member => {
+            if (!member) return res.send("Member not found!")
 
-        return
+            member.birth = date(member.birth).iso
+
+            return res.render("members/edit", { member })
+        })
     },
 
     put(req, res){
@@ -41,11 +56,15 @@ module.exports = {
             }
         }
 
-        return
+        Member.update(req.body, () => {
+            return res.redirect(`/members/${req.body.id}`)
+        })
+
     },
 
     delete(req, res){
-
-        return
+        Member.delete(req.body.id, () => {
+            return res.redirect(`/members/`)
+        })
     }
 }
